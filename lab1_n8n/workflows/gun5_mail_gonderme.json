@@ -1,0 +1,247 @@
+{
+  "name": "Gün 5 · Mail Gönderme",
+  "nodes": [
+    {
+      "id": "fd91af1a-6a59-5c5f-a948-1227d3cde6d3",
+      "name": "Mail yazma formu",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "formTitle": "Finansman birimine e-posta gönder",
+        "formDescription": "Müşteri gibi bir e-posta yazın ya da hazır örnek seçin. E-posta başvuru kutusuna düşer; yanıt taslağı kısa süre sonra *Gün 5 · Gelen kutusu* tablosunda görünür.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Adınız",
+              "placeholder": "Örn. A. Yılmaz",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "E-posta adresiniz",
+              "fieldType": "email",
+              "placeholder": "ad.soyad@ornek-musteri.test",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Hazır örnek",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Kendim yazacağım"
+                  },
+                  {
+                    "option": "Eksik evrak"
+                  },
+                  {
+                    "option": "Yeni başvuru"
+                  },
+                  {
+                    "option": "Durum sorgusu"
+                  },
+                  {
+                    "option": "Şikâyet"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Konu",
+              "placeholder": "Hazır örnek seçtiyseniz boş bırakabilirsiniz"
+            },
+            {
+              "fieldLabel": "Metin",
+              "fieldType": "textarea",
+              "placeholder": "E-posta metni; hazır örnek seçtiyseniz boş bırakabilirsiniz"
+            },
+            {
+              "fieldLabel": "Ekler (dosya adları)",
+              "placeholder": "Örn. kimlik.pdf, bordro.pdf; ek yoksa boş"
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "respondWith": "text",
+              "formSubmittedText": "E-postanız başvuru kutusuna iletildi. Yanıt taslağı bir dakika içinde \"Gün 5 · Gelen kutusu\" tablosunda görünür."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "32a1bf34-fe94-57ed-a2f9-6e4b2ee38629",
+      "name": "E-postayı hazırla",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Eğitim amaçlı hazır örnekler. Gerçek kişi ve müşteri verisi değildir.\nconst ornekler = {\n  \"Eksik evrak\": {\n    \"Konu\": \"Konut finansmanı başvurum hakkında\",\n    \"Metin\": \"Merhaba, konut finansmanı başvurum için kimlik fotokopimi ve maaş bordromu ekte gönderiyorum. Tapu fotokopisini henüz tapu müdürlüğünden alamadım, birkaç gün içinde iletebilirim. Başvurum bu hâliyle değerlendirmeye alınabilir mi?\",\n    \"Ekler\": \"kimlik.pdf, bordro.pdf\"\n  },\n  \"Yeni başvuru\": {\n    \"Konu\": \"Taşıt finansmanı ön başvuru\",\n    \"Metin\": \"Merhaba, ikinci el bir otomobil için araç finansmanı ön başvurusu yapmak istiyorum. Gelir belgemi ekte gönderiyorum. Araç bedeli yaklaşık 900.000 TL, vadeyi 36 ay düşünüyorum. Sürecin nasıl ilerleyeceğini bildirirseniz sevinirim.\",\n    \"Ekler\": \"gelir_belgesi.pdf\"\n  },\n  \"Durum sorgusu\": {\n    \"Konu\": \"Başvurumun durumu\",\n    \"Metin\": \"İyi günler, geçen salı şubenize gelerek ihtiyaç finansmanı başvurusu yapmıştım. Başvurumun hangi aşamada olduğunu öğrenebilir miyim? Teşekkürler.\",\n    \"Ekler\": \"\"\n  },\n  \"Şikâyet\": {\n    \"Konu\": \"Başvurum için üç haftadır dönüş yok\",\n    \"Metin\": \"Konut finansmanı başvurumu üç hafta önce yaptım ve bugüne kadar hiçbir dönüş almadım. Telefonla da ulaşamıyorum. Bu durumdan çok rahatsızım, konunun acilen çözülmesini bekliyorum.\",\n    \"Ekler\": \"kimlik.pdf, bordro.pdf, tapu.pdf\"\n  }\n};\nconst f = $input.first().json;\nconst secim = f['Hazır örnek'] || 'Kendim yazacağım';\nconst o = ornekler[secim] || {};\nconst konu = (f['Konu'] || o.Konu || '').trim();\nconst metin = (f['Metin'] || o.Metin || '').trim();\nif (!konu || !metin) {\n  throw new Error('\"Kendim yazacağım\" seçtiyseniz konu ve metin alanlarını doldurun, ya da bir hazır örnek seçin.');\n}\nconst simdi = $now.setZone('Europe/Istanbul');\nreturn [{ json: {\n  Mesaj_ID: 'FORM-' + simdi.toFormat('yyMMdd-HHmmss'),\n  Gonderen: f['Adınız'],\n  Gonderen_eposta: f['E-posta adresiniz'],\n  Konu: konu,\n  Metin: metin,\n  Ekler: f['Ekler (dosya adları)'] !== undefined && f['Ekler (dosya adları)'] !== '' ? f['Ekler (dosya adları)'] : (o.Ekler || ''),\n  Alinma_tarihi: simdi.toISO(),\n  Durum: 'Yeni'\n} }];\n"
+      }
+    },
+    {
+      "id": "cfb2fd2a-c694-57af-bc40-fec026ee12e9",
+      "name": "Gelen kutusuna ekle",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        200
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Gün 5 · Gelen kutusu"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Mesaj_ID": "={{ $json.Mesaj_ID }}",
+            "Gonderen": "={{ $json.Gonderen }}",
+            "Gonderen_eposta": "={{ $json.Gonderen_eposta }}",
+            "Konu": "={{ $json.Konu }}",
+            "Metin": "={{ $json.Metin }}",
+            "Ekler": "={{ $json.Ekler }}",
+            "Alinma_tarihi": "={{ $json.Alinma_tarihi }}",
+            "Durum": "={{ $json.Durum }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Mesaj_ID",
+              "displayName": "Mesaj_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Gonderen",
+              "displayName": "Gonderen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Gonderen_eposta",
+              "displayName": "Gonderen_eposta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Konu",
+              "displayName": "Konu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Metin",
+              "displayName": "Metin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ekler",
+              "displayName": "Ekler",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Alinma_tarihi",
+              "displayName": "Alinma_tarihi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3040cd85-8137-5b9e-bc9d-f865f3f98c85",
+      "name": "Not · Mail Gönderme",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -20
+      ],
+      "parameters": {
+        "content": "## Gün 5 · Mail Gönderme\n**Bu akışa dokunmayın.** Müşteri e-postasını simüle eder: formu doldurun, e-posta *Gün 5 · Gelen kutusu* tablosuna düşer. Akışı **yayınlayın** (Publish) ve *Mail yazma formu* düğümündeki **Production URL**'i tarayıcıda açın. Yayınlamadan denemek için düğümdeki *Test URL* kullanılır (akış açıkken).",
+        "color": 7,
+        "width": 800,
+        "height": 180
+      }
+    }
+  ],
+  "connections": {
+    "Mail yazma formu": {
+      "main": [
+        [
+          {
+            "node": "E-postayı hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E-postayı hazırla": {
+      "main": [
+        [
+          {
+            "node": "Gelen kutusuna ekle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Istanbul",
+    "saveManualExecutions": true
+  },
+  "pinData": null
+}

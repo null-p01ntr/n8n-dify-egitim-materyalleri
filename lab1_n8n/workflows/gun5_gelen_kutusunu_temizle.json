@@ -1,0 +1,70 @@
+{
+  "name": "Gün 5 · Gelen Kutusunu Temizle",
+  "nodes": [
+    {
+      "id": "19d5ac59-3e81-5772-8b91-f157bf8bbb03",
+      "name": "Elle çalıştır",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "3c2eeb83-ffee-5882-847d-566820df9199",
+      "name": "Gelen kutusunu temizle",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        200
+      ],
+      "parameters": {
+        "resource": "table",
+        "operation": "clear",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Gün 5 · Gelen kutusu"
+        }
+      }
+    },
+    {
+      "id": "5591ac30-a7a5-55f1-92f5-72405f78e73c",
+      "name": "Not · Temizleme",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -160
+      ],
+      "parameters": {
+        "content": "## Gün 5 · Gelen Kutusunu Temizle\n**Bu akışa dokunmayın.** *Execute workflow* ile *Gün 5 · Gelen kutusu* tablosundaki tüm satırları siler. Tablonun kendisi ve sütunları silinmez. Yeni bir deneme turundan önce çalıştırın.",
+        "color": 7,
+        "width": 700,
+        "height": 140
+      }
+    }
+  ],
+  "connections": {
+    "Elle çalıştır": {
+      "main": [
+        [
+          {
+            "node": "Gelen kutusunu temizle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Istanbul",
+    "saveManualExecutions": true
+  },
+  "pinData": null
+}

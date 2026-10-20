@@ -1,0 +1,39 @@
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editör / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code (yerel ayarlar ve oturum dosyaları)
+.claude/
+
+# Sırlar ve ortam dosyaları: n8n / Dify / OpenAI anahtarları asla repoya girmesin
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials*.json
+
+# n8n dışa aktarımları: credential kimliği ve anahtar içerebilir, sadece temizlenmiş olanlar eklenir
+*_yedek*.json
+*.n8n-backup.json
+
+# Üretilen ve geçici dosyalar
+*.zip
+*.tmp
+*.log
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+dist/
+build/

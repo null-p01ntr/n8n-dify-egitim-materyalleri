@@ -1,0 +1,139 @@
+{
+  "name": "Gün 5 · Gelen Kutusu Ekranı",
+  "nodes": [
+    {
+      "id": "9a2930cc-6584-57c9-abed-0a9ef43d211c",
+      "name": "Sayfa isteği",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "",
+        "authentication": "none",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "a5cd11a4-8f10-5ad1-8b0a-f7b56d6c041d",
+      "name": "Gelen kutusunu oku",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        200
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Gün 5 · Gelen kutusu"
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "5db1a6b1-df74-5813-b8ca-5fe587692439",
+      "name": "Sayfayı hazırla",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Gelen kutusunu kartlar halinde gösteren HTML sayfası (script yok, sayfa kendini yeniler).\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst zaman = (v) => { const d = new Date(v); return isNaN(d) ? String(v || '') : d.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', dateStyle: 'short', timeStyle: 'short' }); };\nconst satirlar = $input.all().map((i) => i.json).filter((r) => r.Mesaj_ID);\nsatirlar.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));\n\nconst renk = { 'Eksik evrak': '#d97706', 'Yeni başvuru': '#2563eb', 'Durum sorgusu': '#6b7280', 'Şikâyet': '#dc2626', 'İnceleme gerekli': '#7c3aed' };\nconst durumRenk = { 'Yeni': '#9ca3af', 'Yanıt hazır': '#16a34a', 'Belge bekleniyor': '#d97706' };\n\nconst kartlar = satirlar.map((r) => {\n  const isleniyor = r.Durum === 'Yeni';\n  const durum = isleniyor ? 'İşleniyor...' : esc(r.Durum);\n  const sonuc = isleniyor\n    ? '<p class=\"bekle\">Yapay zekâ henüz okumadı. Ana süreç her dakika çalışır.</p>'\n    : '<p><b>Özet:</b> ' + esc(r.Ozet) + '</p>'\n      + (r.Eksik_belge ? '<p><b>Eksik belge:</b> ' + esc(r.Eksik_belge) + '</p>' : '')\n      + '<p class=\"alt\">Yanıt taslağı (gönderilmedi)</p><div class=\"taslak\">' + esc(r.Yanit_taslagi) + '</div>';\n  return '<section class=\"kart\">'\n    + '<div class=\"ust\"><span class=\"rozet\" style=\"background:' + (durumRenk[r.Durum] || '#6b7280') + '\">' + durum + '</span>'\n    + (r.Kategori ? '<span class=\"rozet\" style=\"background:' + (renk[r.Kategori] || '#6b7280') + '\">' + esc(r.Kategori) + '</span>' : '')\n    + '<span class=\"tarih\">' + esc(zaman(r.Alinma_tarihi)) + '</span></div>'\n    + '<h2>' + esc(r.Konu) + '</h2>'\n    + '<p class=\"kim\">' + esc(r.Gonderen) + ' &lt;' + esc(r.Gonderen_eposta) + '&gt;' + (r.Ekler ? ' · Ek: ' + esc(r.Ekler) : ' · Ek yok') + '</p>'\n    + '<p class=\"metin\">' + esc(r.Metin) + '</p>'\n    + sonuc\n    + '</section>';\n}).join('');\n\nconst css = ':root{--bg:#f6f7f9;--kart:#fff;--yazi:#1f2937;--soluk:#6b7280;--cizgi:#e5e7eb;--taslak:#f0f9ff}'\n  + '@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--kart:#1a1d24;--yazi:#e5e7eb;--soluk:#9ca3af;--cizgi:#2b303b;--taslak:#10263a}}'\n  + '*{box-sizing:border-box}body{margin:0;padding:16px;background:var(--bg);color:var(--yazi);font:15px/1.5 system-ui,sans-serif}'\n  + 'main{max-width:820px;margin:0 auto}h1{font-size:20px;margin:4px 0}.not{color:var(--soluk);font-size:13px;margin:0 0 16px}'\n  + '.kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:10px;padding:14px 16px;margin-bottom:12px}'\n  + '.kart h2{font-size:16px;margin:8px 0 2px}.ust{display:flex;gap:8px;align-items:center;flex-wrap:wrap}'\n  + '.rozet{color:#fff;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px}.tarih{margin-left:auto;color:var(--soluk);font-size:12px}'\n  + '.kim{color:var(--soluk);font-size:13px;margin:0 0 8px}.metin{white-space:pre-wrap;margin:0 0 10px}.bekle{color:var(--soluk);font-style:italic}'\n  + '.alt{color:var(--soluk);font-size:12px;margin:10px 0 4px}.taslak{white-space:pre-wrap;background:var(--taslak);border-radius:8px;padding:10px 12px}'\n  + '.kart p{margin:4px 0}';\n\nconst html = '<!doctype html><html lang=\"tr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">'\n  + '<meta http-equiv=\"refresh\" content=\"5\"><title>Gelen kutusu</title><style>' + css + '</style></head><body><main>'\n  + '<h1>Gelen kutusu (' + satirlar.length + ')</h1><p class=\"not\">Sayfa 5 saniyede bir yenilenir. Hiçbir yanıt gerçekten gönderilmez.</p>'\n  + (kartlar || '<p class=\"bekle\">Henüz e-posta yok. Mail Gönderme formundan bir e-posta gönderin.</p>')\n  + '</main></body></html>';\n\nreturn [{ json: { html } }];\n"
+      }
+    },
+    {
+      "id": "869c3c16-4a17-528b-9912-cf572ff57c33",
+      "name": "Sayfayı gönder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        780,
+        200
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "830e3888-064e-56c3-a0f8-aa4f784e939e",
+      "name": "Not · Ekran",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -20
+      ],
+      "parameters": {
+        "content": "## Gün 5 · Gelen Kutusu Ekranı\n**Bu akışa dokunmayın.** *Gün 5 · Gelen kutusu* tablosunu tarayıcıda kartlar halinde gösterir. Akışı **yayınlayın**, *Sayfa isteği* düğümündeki **Production URL**'i yeni bir sekmede açın ve Mail Gönderme formundan e-posta gönderirken yan sekmede izleyin. Sayfa 5 saniyede bir yenilenir.",
+        "color": 7,
+        "width": 900,
+        "height": 150
+      }
+    }
+  ],
+  "connections": {
+    "Sayfa isteği": {
+      "main": [
+        [
+          {
+            "node": "Gelen kutusunu oku",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gelen kutusunu oku": {
+      "main": [
+        [
+          {
+            "node": "Sayfayı hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sayfayı hazırla": {
+      "main": [
+        [
+          {
+            "node": "Sayfayı gönder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Istanbul",
+    "saveManualExecutions": true
+  },
+  "pinData": null
+}

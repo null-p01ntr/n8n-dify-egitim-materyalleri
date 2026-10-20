@@ -1,0 +1,592 @@
+{
+  "name": "Gün 5 · Demo · Finansman Başvuru Posta Kutusu",
+  "nodes": [
+    {
+      "id": "faa45b46-8ef3-451e-a2f7-c966131a3d38",
+      "name": "Zamanlayıcı",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "10e74ef9-d6d6-44e3-9384-468774da75e9",
+      "name": "E-postaları oku",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        300,
+        300
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Gün 5 · Gelen kutusu"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "Durum",
+              "condition": "eq",
+              "keyValue": "Yeni"
+            }
+          ]
+        },
+        "returnAll": false,
+        "limit": 20,
+        "orderBy": true,
+        "orderByColumn": "Alinma_tarihi",
+        "orderByDirection": "ASC"
+      }
+    },
+    {
+      "id": "c0a6415d-9959-4ab3-ada9-15738af98166",
+      "name": "Elle çalıştır",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        420
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "0c86fb82-4aeb-4f3e-8377-f30e7f434fbb",
+      "name": "Yapay zekâ",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        520,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Aşağıdaki e-postayı oku. Kategorisini seç: Yeni başvuru, Eksik evrak, Durum sorgusu, Şikâyet. İki cümlelik bir özet yaz. Eksik evrak varsa hangi belge olduğunu belirt. Son olarak müşteriye gönderilecek kısa bir yanıt taslağı yaz.\n\nGönderen: {{ $json.Gonderen }}\nKonu: {{ $json.Konu }}\nEkler: {{ $json.Ekler || \"Ek yok\" }}\n\n{{ $json.Metin }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "SystemMessagePromptTemplate",
+              "message": "Sen bir bankanın finansman birimine gelen müşteri e-postalarını okuyan yardımcı bir asistansın.\n\nKurallar:\n- \"Ekler\" satırı müşterinin gerçekten eklediği dosyaları gösterir. Müşteri bir belgeyi gönderdiğini yazdığı hâlde o belge Ekler satırında yoksa, ya da bir belgeyi sonra göndereceğini söylüyorsa, o belge eksiktir ve kategori \"Eksik evrak\" olur.\n- Özet bir tablo hücresine yazılacak. \"İki cümlelik\" isteğini üst sınır olarak yorumla: mümkünse noktalı virgülle bağlanmış tek cümle yaz, en fazla 12 kelime. Kişi adı yazma. Biçim: ürün + en önemli durum.\n- Özet örnekleri (bu uzunlukta yaz):\n  • Konut finansmanı başvurusu; tapu fotokopisi eksik.\n  • İhtiyaç finansmanı başvurusunun aşamasını soruyor.\n  • Taşıt finansmanı ön başvurusu; gelir belgesi ekli.\n  • Konut finansmanı başvurusuna üç haftadır dönüş yapılmamasından şikâyetçi.\n- eksik_belge alanına yalnızca belgenin adını yaz (örn. \"Tapu fotokopisi\", \"Son üç aylık bordro\"); \"eksik\", \"eklenmemiş\" gibi açıklama ekleme. Eksik belge yoksa boş bırak.\n- Her şeyi Türkçe yaz.\n- yanit alanı müşteriye gidecek e-posta metnidir: \"Sayın <gönderen adı>,\" ile başla, 3-5 cümle, nazik ve sade yaz, \"Saygılarımızla,\\nFinansman Başvuru Birimi\" ile bitir. İçeriği kategoriye göre kur:\n  • Eksik evrak: eksik belgeyi adıyla iste; e-postayı yanıtlayarak ya da şubeye uğrayarak iletebileceğini söyle.\n  • Yeni başvuru: başvurunun alındığını ve değerlendirileceğini bildir; ek belge gerekirse haber verileceğini söyle.\n  • Durum sorgusu: talebin ilgili ekibe iletildiğini ve en kısa sürede dönüş yapılacağını söyle.\n  • Şikâyet: yaşanan sorun için özür dile, konunun yetkili ekibe iletildiğini söyle.\n  Tarih, tutar, faiz ya da onay sözü verme; başvurunun durumunu uydurma."
+            }
+          ]
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "31b5ba78-70ad-4d7d-8d90-9529246f3d39",
+      "name": "OpenAI modeli",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        520,
+        540
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI Test"
+        }
+      }
+    },
+    {
+      "id": "6ccca1f9-61e1-42fb-8e88-731a81bac095",
+      "name": "Çıktı biçimi",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        540
+      ],
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"kategori\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Yeni başvuru\",\n        \"Eksik evrak\",\n        \"Durum sorgusu\",\n        \"Şikâyet\"\n      ],\n      \"description\": \"E-postanın kategorisi. Yalnızca bu dört değerden biri.\"\n    },\n    \"ozet\": {\n      \"type\": \"string\",\n      \"description\": \"En fazla 12 kelimelik kısa Türkçe özet, kişi adı yok. Örnek: \\\"Konut finansmanı başvurusu; tapu fotokopisi eksik.\\\"\"\n    },\n    \"eksik_belge\": {\n      \"type\": \"string\",\n      \"description\": \"Eksik olan belgenin kısa adı (örn. \\\"Tapu fotokopisi\\\"). Eksik belge yoksa boş metin.\"\n    },\n    \"yanit\": {\n      \"type\": \"string\",\n      \"description\": \"Müşteriye gönderilecek Türkçe yanıt taslağı; \\\"Sayın ...\\\" ile başlar, \\\"Finansman Başvuru Birimi\\\" ile biter.\"\n    }\n  },\n  \"required\": [\n    \"kategori\",\n    \"ozet\",\n    \"eksik_belge\",\n    \"yanit\"\n  ],\n  \"additionalProperties\": false\n}",
+        "autoFix": true
+      }
+    },
+    {
+      "id": "0753c7f7-949f-4184-a596-394e442f4b08",
+      "name": "Karar (IF)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.output?.kategori }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "Eksik evrak"
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "65e22b28-63bb-4a38-ae4e-b7abf536ad5c",
+      "name": "Sticky Note db31c6b8",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -220
+      ],
+      "parameters": {
+        "content": "## Gün 5 · Demo · Finansman Başvuru Posta Kutusu\nBu akış her dakika gelen kutusundaki yeni e-postaları okur, yapay zekâyla sınıflandırır ve her e-posta için müşteriye yanıt taslağı yazar. Sonuç e-postanın kendi satırına işlenir. E-postayı **Gün 5 · Mail Gönderme** formundan siz gönderirsiniz. Hiçbir e-posta gerçekten gönderilmez.",
+        "color": 7,
+        "width": 1960,
+        "height": 180
+      }
+    },
+    {
+      "id": "55902a3a-b6e0-4eb6-880a-3037cf49b2f8",
+      "name": "Sticky Note e84b85a7",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -20
+      ],
+      "parameters": {
+        "content": "**01 · Zamanlayıcı**\nYayınlandığında her dakika kendiliğinden başlar; \"Elle çalıştır\" ile hemen de başlatabilirsiniz.",
+        "color": 4,
+        "width": 260,
+        "height": 170
+      }
+    },
+    {
+      "id": "eba7fa3f-d1e8-4dd7-947e-7be13718b386",
+      "name": "Sticky Note 048f78bc",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -20
+      ],
+      "parameters": {
+        "content": "**02 · E-postaları oku**\nGelen kutusunda Durum = Yeni olan e-postaları (en fazla 20) alır. Gerçek hayatta burada Gmail / Outlook \"e-posta al\" düğümü olur; geri kalan akış aynı kalır.",
+        "color": 4,
+        "width": 230,
+        "height": 170
+      }
+    },
+    {
+      "id": "20bfb90e-b8fd-4b67-a5fb-69bfa77744f3",
+      "name": "Sticky Note d436f828",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        490,
+        -20
+      ],
+      "parameters": {
+        "content": "**03 · Yapay zekâ**\nHer e-postayı okur, kategorisini seçer, kısa özet yazar, eksik belgeyi not eder ve müşteriye yanıt taslağı hazırlar.",
+        "color": 6,
+        "width": 320,
+        "height": 170
+      }
+    },
+    {
+      "id": "cfe2f29c-b1ef-4ce3-afbc-e41dd3401c11",
+      "name": "Sticky Note cdc3afde",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        830,
+        -20
+      ],
+      "parameters": {
+        "content": "**04 · Karar**\nKategori \"Eksik evrak\" ise \"Belge bekleniyor\", değilse \"Yanıt hazır\" durumuna gider.",
+        "color": 3,
+        "width": 220,
+        "height": 170
+      }
+    },
+    {
+      "id": "c40c853a-4745-423d-9c9d-f2092aef1530",
+      "name": "Sticky Note 402a0060",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1070,
+        -20
+      ],
+      "parameters": {
+        "content": "**05 · Kayıt**\nKategori, özet, eksik belge ve yanıt taslağı e-postanın kendi satırına yazılır; Durum güncellenir.",
+        "color": 5,
+        "width": 220,
+        "height": 170
+      }
+    },
+    {
+      "id": "5f4e0eec-74cb-4d0e-8a0f-f2060a061eaa",
+      "name": "Sticky Note 5e3c152e",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1310,
+        -20
+      ],
+      "parameters": {
+        "content": "**06 · Gönderim (kapalı)**\nGerçek sistemde Gmail credential'ı eklenip açılırsa yanıt müşteriye gider. Eğitimde kapalıdır.",
+        "color": 4,
+        "width": 400,
+        "height": 170
+      }
+    },
+    {
+      "id": "a802c1af-d147-58f3-8118-75227e8c4ad7",
+      "name": "Eksik evrak olarak kaydet",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        180
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Gün 5 · Gelen kutusu"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "Mesaj_ID",
+              "condition": "eq",
+              "keyValue": "={{ $('E-postaları oku').item.json.Mesaj_ID }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Durum": "Belge bekleniyor",
+            "Kategori": "={{ $('Yapay zekâ').item.json.output?.kategori ?? 'İnceleme gerekli' }}",
+            "Ozet": "={{ $('Yapay zekâ').item.json.output?.ozet ?? 'Yapay zekâ yanıtı okunamadı; e-postayı elle inceleyin.' }}",
+            "Eksik_belge": "={{ $('Yapay zekâ').item.json.output?.eksik_belge ?? '' }}",
+            "Yanit_taslagi": "={{ $('Yapay zekâ').item.json.output?.yanit ?? 'Yapay zekâ yanıtı okunamadı; e-postayı elle yanıtlayın.' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Kategori",
+              "displayName": "Kategori",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ozet",
+              "displayName": "Ozet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Eksik_belge",
+              "displayName": "Eksik_belge",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Yanit_taslagi",
+              "displayName": "Yanit_taslagi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "94fe1c1c-8d88-53fd-987a-e9f77f485cb5",
+      "name": "Kaydet",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        420
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Gün 5 · Gelen kutusu"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "Mesaj_ID",
+              "condition": "eq",
+              "keyValue": "={{ $('E-postaları oku').item.json.Mesaj_ID }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Durum": "Yanıt hazır",
+            "Kategori": "={{ $('Yapay zekâ').item.json.output?.kategori ?? 'İnceleme gerekli' }}",
+            "Ozet": "={{ $('Yapay zekâ').item.json.output?.ozet ?? 'Yapay zekâ yanıtı okunamadı; e-postayı elle inceleyin.' }}",
+            "Eksik_belge": "={{ $('Yapay zekâ').item.json.output?.eksik_belge ?? '' }}",
+            "Yanit_taslagi": "={{ $('Yapay zekâ').item.json.output?.yanit ?? 'Yapay zekâ yanıtı okunamadı; e-postayı elle yanıtlayın.' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Kategori",
+              "displayName": "Kategori",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ozet",
+              "displayName": "Ozet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Eksik_belge",
+              "displayName": "Eksik_belge",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Yanit_taslagi",
+              "displayName": "Yanit_taslagi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5d2250f5-5a33-5ec2-a29c-1218e9766eb9",
+      "name": "Yanıtı gönder (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1420,
+        300
+      ],
+      "disabled": true,
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('E-postaları oku').item.json.Gonderen_eposta }}",
+        "subject": "=Ynt: {{ $('E-postaları oku').item.json.Konu }}",
+        "emailType": "text",
+        "message": "={{ $('Yapay zekâ').item.json.output?.yanit }}",
+        "options": {
+          "appendAttribution": false
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Zamanlayıcı": {
+      "main": [
+        [
+          {
+            "node": "E-postaları oku",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E-postaları oku": {
+      "main": [
+        [
+          {
+            "node": "Yapay zekâ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Elle çalıştır": {
+      "main": [
+        [
+          {
+            "node": "E-postaları oku",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Yapay zekâ": {
+      "main": [
+        [
+          {
+            "node": "Karar (IF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI modeli": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Yapay zekâ",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Çıktı biçimi",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Çıktı biçimi": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Yapay zekâ",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Karar (IF)": {
+      "main": [
+        [
+          {
+            "node": "Eksik evrak olarak kaydet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Kaydet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eksik evrak olarak kaydet": {
+      "main": [
+        [
+          {
+            "node": "Yanıtı gönder (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kaydet": {
+      "main": [
+        [
+          {
+            "node": "Yanıtı gönder (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Istanbul",
+    "saveManualExecutions": true
+  },
+  "pinData": null
+}
