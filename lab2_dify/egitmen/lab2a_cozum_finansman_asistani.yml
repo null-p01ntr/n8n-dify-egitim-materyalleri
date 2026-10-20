@@ -1,0 +1,85 @@
+app:
+  description: 'Lab 2A çözümü: yalnızca talimatlarla çalışan sohbet botu (bilgi tabanı yok).'
+  icon: 💬
+  icon_background: '#F3F4F6'
+  icon_type: emoji
+  mode: chat
+  name: Finansman Asistanı
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai:1.0.6@92f66006d7cfb510e1ce76f62ec76d6aa6fdbaf22bf0eda6a4eb20a9a883ba9f
+    version: null
+kind: app
+model_config:
+  agent_mode:
+    enabled: false
+    prompt: null
+    strategy: null
+    tools: []
+  annotation_reply:
+    enabled: false
+  chat_prompt_config: {}
+  completion_prompt_config: {}
+  dataset_configs:
+    retrieval_model: multiple
+  dataset_query_variable: null
+  external_data_tools: []
+  file_upload:
+    image:
+      detail: high
+      enabled: false
+      number_limits: 3
+      transfer_methods:
+      - remote_url
+      - local_file
+  model:
+    completion_params:
+      temperature: 0.1
+    mode: chat
+    name: gpt-4.1-mini
+    provider: langgenius/openai/openai
+  more_like_this:
+    enabled: false
+  opening_statement: Merhaba! Ben Finansman Asistanı. İhtiyaç, araç ve konut finansmanı hakkındaki genel
+    sorularınızı cevaplayabilirim.
+  pre_prompt: 'Sen bir katılım bankasının şube personeline finansman konularında yardımcı olan "Finansman
+    Asistanı"sın.
+
+
+    Kurallar:
+
+    1. Türkçe, kısa ve net yaz: en fazla 3-5 cümle ya da kısa bir madde listesi.
+
+    2. İhtiyaç, araç ve konut finansmanı hakkında yalnızca genel bilgi ver.
+
+    3. Katılım bankacılığı dilini kullan: "kredi" yerine "finansman", "faiz" yerine "kâr payı", "komisyon"
+    yerine "ücret" kullan.
+
+    4. Yalnızca bankaya özel bir oran, ücret, süre ya da kural sorulursa ve bilmiyorsan uydurma; "Güncel
+    bilgi için Finansman Politikaları Birimi''ne danışın." de.
+
+    5. Yalnızca belirli bir müşteri için onay ya da ret sorulursa karar verme; kararın Finansman Tahsis
+    Birimi''ne ait olduğunu söyle.
+
+    6. Finansman dışındaki konularda kibarca "Bu konuda yardımcı olamıyorum." de.'
+  prompt_type: simple
+  retriever_resource:
+    enabled: true
+  sensitive_word_avoidance:
+    config: {}
+    enabled: false
+    type: ''
+  speech_to_text:
+    enabled: false
+  suggested_questions:
+  - İhtiyaç finansmanı nedir, kimler başvurabilir?
+  - Konut finansmanında erken kapama ücreti ne kadar?
+  suggested_questions_after_answer:
+    enabled: false
+  text_to_speech:
+    enabled: false
+  user_input_form: []
+version: 0.7.0

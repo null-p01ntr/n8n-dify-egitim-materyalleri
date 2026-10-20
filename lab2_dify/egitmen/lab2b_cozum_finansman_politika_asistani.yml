@@ -1,0 +1,108 @@
+app:
+  description: 'Lab 2B çözümü: bilgi tabanındaki politika dokümanlarından kaynak göstererek cevap veren
+    sohbet botu.'
+  icon: 📚
+  icon_background: '#E0F2FE'
+  icon_type: emoji
+  mode: chat
+  name: Finansman Politika Asistanı
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai:1.0.6@92f66006d7cfb510e1ce76f62ec76d6aa6fdbaf22bf0eda6a4eb20a9a883ba9f
+    version: null
+kind: app
+model_config:
+  agent_mode:
+    enabled: false
+    prompt: null
+    strategy: router
+    tools: []
+  annotation_reply:
+    enabled: false
+  chat_prompt_config: {}
+  completion_prompt_config: {}
+  dataset_configs:
+    reranking_enable: false
+    reranking_mode: weighted_score
+    retrieval_model: multiple
+    score_threshold: 0.4
+    score_threshold_enabled: true
+    top_k: 4
+    weights:
+      keyword_setting:
+        keyword_weight: 0.3
+      vector_setting:
+        embedding_model_name: text-embedding-3-large
+        embedding_provider_name: langgenius/openai/openai
+        vector_weight: 0.7
+      weight_type: customized
+  dataset_query_variable: null
+  external_data_tools: []
+  file_upload:
+    image:
+      detail: high
+      enabled: false
+      number_limits: 3
+      transfer_methods:
+      - remote_url
+      - local_file
+  model:
+    completion_params:
+      stop: []
+      temperature: 0.1
+    mode: chat
+    name: gpt-4.1-mini
+    provider: langgenius/openai/openai
+  more_like_this:
+    enabled: false
+  opening_statement: Merhaba! Ben Finansman Politika Asistanı. Finansman ürünleri, gerekli evraklar, ücretler
+    ve şube uygulamaları hakkındaki sorularınızı yüklenen politika dokümanlarına göre cevaplıyorum; her
+    cevabın altında kaynağını görebilirsiniz.
+  pre_prompt: 'Sen şube personeline finansman politikaları konusunda yardımcı olan "Finansman Politika
+    Asistanı"sın.
+
+
+    Kurallar:
+
+    1. Yalnızca sana verilen doküman bölümlerindeki bilgilerle cevap ver. Genel bilgini, tahminini ya
+    da başka kaynakları kullanma.
+
+    2. Her cevabın sonuna kaynağı şu biçimde yaz: "Kaynak: <Doküman adı> · Bölüm <numara>" (örnek: "Kaynak:
+    Kâr Payı ve Ücret Politikası · Bölüm 4.2"). Doküman adı yalnızca şu dördünden biri olabilir: Finansman
+    Ürün Kataloğu, Ürün Bazında Gerekli Evrak Listesi, Kâr Payı ve Ücret Politikası, Şube Sık Sorulan
+    Sorular. Bölüm başlığını doküman adı olarak yazma. SSS cevaplarında "Bölüm" yerine "Soru <numara>"
+    yaz.
+
+    3. Cevap dokümanlarda yoksa bunu açıkça söyle: "Bu konu yüklenen dokümanlarda yer almıyor." Ardından
+    Finansman Politikaları Birimi''ne danışmayı öner.
+
+    4. Oran, tutar, süre ya da kural uydurma; dokümanda yazanı aynen aktar.
+
+    5. Belirli bir müşteri hakkında finansman kararı (onay, ret, "çıkar/çıkmaz") verme. Finansman kararının
+    Finansman Tahsis Birimi''ne ait olduğunu hatırlat.
+
+    6. Kısa ve net yaz: en fazla 3-5 cümle ya da kısa bir madde listesi.
+
+    7. Türkçe yaz.'
+  prompt_type: simple
+  retriever_resource:
+    enabled: true
+  sensitive_word_avoidance:
+    enabled: false
+  speech_to_text:
+    enabled: false
+  suggested_questions:
+  - Konut finansmanı için hangi belgeler gerekiyor?
+  - Erken kapamada ücret alınıyor mu?
+  - Serbest meslek sahibi gelir belgesi olarak ne sunabilir?
+  suggested_questions_after_answer:
+    enabled: false
+  text_to_speech:
+    enabled: false
+    language: ''
+    voice: ''
+  user_input_form: []
+version: 0.7.0
