@@ -1,0 +1,7 @@
+{
+  "TABLO_BASVURU_GUNLUGU": "<n8n'de 'Gün 5 · Hibrit · Başvuru günlüğü' tablosunun kimliği>",
+  "TABLO_MUSTERI_TASLAKLARI": "<n8n'de 'Gün 5 · Hibrit · Müşteri taslakları' tablosunun kimliği>",
+  "DIFY_API_ADRESI": "<http://dify-adresi/v1>",
+  "KIMLIK_DIFY_BELGELERI_OKU": "<n8n'de 'Dify · Belgeleri Oku (API)' (Header Auth) credential kimliği>",
+  "KIMLIK_DIFY_TASLAK_MEMO": "<n8n'de 'Dify · Taslak Memo (API)' (Header Auth) credential kimliği>"
+}

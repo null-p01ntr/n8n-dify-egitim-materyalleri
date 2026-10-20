@@ -1,0 +1,99 @@
+{
+  "name": "Gün 5 · Hibrit · Demo verisini sıfırla",
+  "nodes": [
+    {
+      "id": "3c3bc5f8-ea65-4ef6-8376-01ab02b13a47",
+      "name": "Elle çalıştır",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "4f205725-353d-4639-bedb-033fafc1014e",
+      "name": "Başvuru günlüğünü temizle",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        300
+      ],
+      "parameters": {
+        "resource": "table",
+        "operation": "clear",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "__TABLO_BASVURU_GUNLUGU__",
+          "cachedResultName": "Gün 5 · Hibrit · Başvuru günlüğü"
+        }
+      }
+    },
+    {
+      "id": "30716f78-523d-411a-a48c-b33f6ef34008",
+      "name": "Müşteri taslaklarını temizle",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        520,
+        300
+      ],
+      "parameters": {
+        "resource": "table",
+        "operation": "clear",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "__TABLO_MUSTERI_TASLAKLARI__",
+          "cachedResultName": "Gün 5 · Hibrit · Müşteri taslakları"
+        }
+      }
+    },
+    {
+      "id": "984f1c16-3c2a-48ba-86e4-3be1478aa095",
+      "name": "Sticky Note 963f1bb8",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        60
+      ],
+      "parameters": {
+        "content": "## Gün 5 · Hibrit · Demo verisini sıfırla\nDemodan önce çalıştırın: başvuru günlüğünü ve müşteri taslaklarını boşaltır.",
+        "color": 7,
+        "width": 800,
+        "height": 380
+      }
+    }
+  ],
+  "connections": {
+    "Elle çalıştır": {
+      "main": [
+        [
+          {
+            "node": "Başvuru günlüğünü temizle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Başvuru günlüğünü temizle": {
+      "main": [
+        [
+          {
+            "node": "Müşteri taslaklarını temizle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,350 @@
+app:
+  description: 'Gün 5 hibrit demo (n8n + Dify): çıkarılan veriyi politika bilgi tabanıyla kıyaslayıp TASLAK
+    finansman memosu yazar. Eğitim amaçlı.'
+  icon: ''
+  icon_background: ''
+  icon_type: emoji
+  mode: workflow
+  name: Taslak Memo
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai:1.0.7@f36c3761167b3af0bfb4975b728fe3cd126342d076e1ec5359e6d4f92557d3d4
+    version: null
+kind: app
+version: 0.7.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload: {}
+    sensitive_word_avoidance:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: template-transform
+      id: start-sorgu_urun
+      source: start
+      sourceHandle: source
+      target: sorgu_urun
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: template-transform
+        targetType: knowledge-retrieval
+      id: sorgu_urun-kb_urun
+      source: sorgu_urun
+      sourceHandle: source
+      target: kb_urun
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: template-transform
+      id: kb_urun-sorgu_evrak
+      source: kb_urun
+      sourceHandle: source
+      target: sorgu_evrak
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: template-transform
+        targetType: knowledge-retrieval
+      id: sorgu_evrak-kb_evrak
+      source: sorgu_evrak
+      sourceHandle: source
+      target: kb_evrak
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: template-transform
+      id: kb_evrak-birlestir
+      source: kb_evrak
+      sourceHandle: source
+      target: birlestir
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: template-transform
+        targetType: llm
+      id: birlestir-memo
+      source: birlestir
+      sourceHandle: source
+      target: memo
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: llm
+      id: memo-eksik
+      source: memo
+      sourceHandle: source
+      target: eksik
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: end
+      id: eksik-end
+      source: eksik
+      sourceHandle: source
+      target: end
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        title: Başvuru verisi
+        type: start
+        variables:
+        - label: Finansman ürünü
+          max_length: 100
+          required: true
+          type: text-input
+          variable: urun
+        - label: Çıkarılan veri (JSON)
+          max_length: 20000
+          required: true
+          type: paragraph
+          variable: cikarilan_veri
+      id: start
+      position:
+        x: 80
+        y: 260
+      type: custom
+    - data:
+        template: '{{ urun }} kimler için, vade aralığı, finansman tutarı üst sınırı, ekspertiz değeri
+          oranı, ipotek, rehin, DASK ve sigorta koşulları'
+        title: Ürün kuralları sorgusu
+        type: template-transform
+        variables:
+        - value_selector:
+          - start
+          - urun
+          variable: urun
+      id: sorgu_urun
+      position:
+        x: 400
+        y: 260
+      type: custom
+    - data:
+        dataset_ids: []
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 5
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: text-embedding-3-large
+              embedding_provider_name: langgenius/openai/openai
+              vector_weight: 0.7
+            weight_type: customized
+        query_variable_selector:
+        - sorgu_urun
+        - output
+        retrieval_mode: multiple
+        title: Politikayla kıyasla · ürün
+        type: knowledge-retrieval
+      id: kb_urun
+      position:
+        x: 720
+        y: 260
+      type: custom
+    - data:
+        template: '{{ urun }} için gerekli evrak listesi, gelir belgesi kaç gün içinde düzenlenmiş olmalı,
+          belge geçerlilik süreleri, ekspertiz raporu geçerliliği, genel kurallar'
+        title: Evrak kuralları sorgusu
+        type: template-transform
+        variables:
+        - value_selector:
+          - start
+          - urun
+          variable: urun
+      id: sorgu_evrak
+      position:
+        x: 1040
+        y: 260
+      type: custom
+    - data:
+        dataset_ids: []
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 5
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: text-embedding-3-large
+              embedding_provider_name: langgenius/openai/openai
+              vector_weight: 0.7
+            weight_type: customized
+        query_variable_selector:
+        - sorgu_evrak
+        - output
+        retrieval_mode: multiple
+        title: Politikayla kıyasla · evrak
+        type: knowledge-retrieval
+      id: kb_evrak
+      position:
+        x: 1360
+        y: 260
+      type: custom
+    - data:
+        template: '{% for r in urun_kurallari %}[{{ r.title }}]
+
+          {{ r.content }}
+
+
+          {% endfor %}{% for r in evrak_kurallari %}[{{ r.title }}]
+
+          {{ r.content }}
+
+
+          {% endfor %}'
+        title: Politika bölümlerini birleştir
+        type: template-transform
+        variables:
+        - value_selector:
+          - kb_urun
+          - result
+          variable: urun_kurallari
+        - value_selector:
+          - kb_evrak
+          - result
+          variable: evrak_kurallari
+      id: birlestir
+      position:
+        x: 1680
+        y: 260
+      type: custom
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gpt-4.1-mini
+          provider: langgenius/openai/openai
+        prompt_template:
+        - role: system
+          text: "Sen bir bankanın finansman analistine TASLAK finansman memosu hazırlayan yardımcı pilotsun.\
+            \ Finansman kararını sen vermezsin; karar yalnızca analiste aittir.\n\nElindekiler: (1) belgelerden\
+            \ çıkarılmış başvuru verisi (JSON; her alanın \"guven\" değeri var), (2) aşağıdaki politika\
+            \ bölümleri (her bölümün başında doküman adı köşeli parantez içinde).\n\nMemoyu Markdown olarak\
+            \ şu yapıda yaz:\n**FİNANSMAN MEMOSU – TASLAK, analist onayı gerektirir**\n1. Başvuru özeti:\
+            \ başvuru no, müşteri, ürün, tutar, vade, başvuru tarihi.\n2. Belgelerden çıkarılan bilgiler:\
+            \ gelir, hesap ekstresi, teminat. Güveni \"okunamadı\" ya da \"belgede yok\" olan alanları\
+            \ açıkça \"(okunamadı)\" / \"(belgede yok)\" diye işaretle.\n3. Politikayla kıyas: aşağıdaki\
+            \ kontrol listesindeki her madde için bir satır: kuralın kısa hâli, başvurudaki değer, durum\
+            \ (Politikayla uyumlu / Politikayla uyumsuz / Bilgi eksik, değerlendirilemedi) ve kaynak \"\
+            (Kaynak: <Doküman adı> · Bölüm <no>)\". Hesapları göster.\n   Kontrol listesi:\n   a) Ürünün\
+            \ vade aralığı\n   b) Finansman tutarının teminat/ekspertiz değerine oranı (ürün için tanımlı\
+            \ üst sınıra göre)\n   c) Gelir belgesinin geçerlilik süresi: belge düzenleme tarihi ile başvuru\
+            \ tarihi arasındaki gün sayısını hesapla ve politikadaki süreyle kıyasla\n   d) Ürün için\
+            \ gerekli evrakların dosyada olup olmadığı: politikadaki evrak listesini başvuru verisindeki\
+            \ \"dosyadaki_belgeler\" alanıyla karşılaştır (ekspertiz raporu banka tarafından yaptırılır;\
+            \ yoksa \"banka tarafından yaptırılmalı\" diye not et)\n   e) Hesap ekstresindeki olumsuz\
+            \ kayıt ve okunamayan alanlar\n4. Eksikler ve analistin kontrol etmesi gerekenler.\n5. Son\
+            \ satır aynen: \"Bu memo bir taslaktır ve finansman kararı içermez. Onay ya da ret kararı\
+            \ yalnızca finansman analistine aittir.\"\n\nKesin kurallar:\n- Başvurunun genelini \"onaylanmalı\"\
+            , \"reddedilmeli\", \"finansman verilebilir\", \"uygundur\" gibi bir sonuca bağlama; yalnızca\
+            \ madde madde uyum durumunu yaz.\n- Bir kuralı yalnızca kendi ürünü için uygula: örneğin İhtiyaç\
+            \ Finansmanı bölümündeki bir kural konut finansmanına uygulanmaz.\n- Yalnızca aşağıdaki politika\
+            \ bölümlerine dayan; orada olmayan kural, oran ya da tutar uydurma. Politika bir konuda hüküm\
+            \ içermiyorsa \"politikada hüküm bulunamadı\" yaz.\n- Kaynakta doküman adı olarak yalnızca\
+            \ şunlardan birini yaz: Finansman Ürün Kataloğu, Ürün Bazında Gerekli Evrak Listesi, Kâr Payı\
+            \ ve Ücret Politikası, Şube Sık Sorulan Sorular.\n- Katılım bankacılığı terminolojisi kullan:\
+            \ \"kredi\" yerine \"finansman\", \"faiz\" yerine \"kâr payı\", \"komisyon\" yerine \"ücret\"\
+            .\n- Türkçe, sade ve kısa yaz. JSON değil, düz Markdown metin döndür.\n\nPolitika bölümleri:\n\
+            {{#birlestir.output#}}"
+        - role: user
+          text: 'Başvuru verisi (JSON):
+
+            {{#start.cikarilan_veri#}}'
+        title: Taslak memo yaz
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      id: memo
+      position:
+        x: 2000
+        y: 260
+      type: custom
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gpt-4.1-mini
+          provider: langgenius/openai/openai
+        prompt_template:
+        - role: system
+          text: 'Aşağıdaki taslak finansman memosundan, müşteriden istenmesi gereken eksik ya da güncellenmesi
+            gereken belgeleri çıkar.
+
+            Her satıra yalnızca bir belge adı yaz (örn. "Güncel maaş bordrosu (son 30 gün içinde düzenlenmiş)").
+            Açıklama, numara ya da madde işareti ekleme.
+
+            Bankanın kendisinin yaptırdığı ya da yürüttüğü işler (örn. ekspertiz raporu, ekspertiz değeri
+            tespiti) müşteriden istenmez; bunları listeye yazma.
+
+            Aynı belgeyi iki kez yazma.
+
+            Müşteriden istenecek belge yoksa yalnızca YOK yaz.'
+        - role: user
+          text: '{{#memo.text#}}'
+        title: Eksik belgeleri listele
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      id: eksik
+      position:
+        x: 2320
+        y: 260
+      type: custom
+    - data:
+        outputs:
+        - value_selector:
+          - memo
+          - text
+          variable: memo
+        - value_selector:
+          - eksik
+          - text
+          variable: eksikler
+        title: Sonuç
+        type: end
+      id: end
+      position:
+        x: 2640
+        y: 260
+      type: custom
+  rag_pipeline_variables: []

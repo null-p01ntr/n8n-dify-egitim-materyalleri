@@ -1,0 +1,615 @@
+app:
+  description: 'Gün 5 hibrit demo (n8n + Dify): başvuru paketinden alanları JSON olarak çıkarır. Eğitim
+    amaçlı.'
+  icon: null
+  icon_background: null
+  icon_type: emoji
+  mode: workflow
+  name: Belgeleri Oku
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai:1.0.7@f36c3761167b3af0bfb4975b728fe3cd126342d076e1ec5359e6d4f92557d3d4
+    version: null
+kind: app
+version: 0.7.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload: {}
+    sensitive_word_avoidance:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: document-extractor
+      id: start-metin
+      source: start
+      sourceHandle: source
+      target: metin
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: document-extractor
+        targetType: llm
+      id: metin-cikar
+      source: metin
+      sourceHandle: source
+      target: cikar
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: end
+      id: cikar-end
+      source: cikar
+      sourceHandle: source
+      target: end
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        title: Başvuru dosyası
+        type: start
+        variables:
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - document
+          allowed_file_upload_methods:
+          - local_file
+          - remote_url
+          label: Başvuru paketi (PDF)
+          required: true
+          type: file
+          variable: basvuru_dosyasi
+      id: start
+      position:
+        x: 80
+        y: 260
+      type: custom
+    - data:
+        is_array_file: false
+        title: Belge metnini çıkar
+        type: document-extractor
+        variable_selector:
+        - start
+        - basvuru_dosyasi
+      id: metin
+      position:
+        x: 400
+        y: 260
+      type: custom
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gpt-4.1-mini
+          provider: langgenius/openai/openai
+        prompt_template:
+        - role: system
+          text: "Sen bir bankanın finansman biriminde başvuru dosyalarından bilgi çıkaran bir asistansın.\n\
+            \nKurallar:\n- Yalnızca belgede yazanı aktar. Hesaplama, yorum, değerlendirme ya da finansman\
+            \ kararı yapma.\n- Tutarları belgede yazdığı gibi \"TL\" ile, tarihleri GG.AA.YYYY biçiminde\
+            \ yaz.\n- Her alanın \"guven\" değeri:\n  • yüksek: açıkça okunuyor\n  • düşük: okunuyor ama\
+            \ belirsiz\n  • okunamadı: alan belgede var ama değeri okunamıyor (bozuk, taranmış, karartılmış).\
+            \ Bu durumda \"deger\" boş kalsın.\n  • belgede yok: alan belgede hiç yok ya da \"belirtilmemiş\
+            \ / yok / henüz düzenlenmedi\" yazıyor. \"deger\" alanına belgede yazan ifadeyi koy.\n- Hiçbir\
+            \ değeri tahmin etme ya da uydurma."
+        - role: user
+          text: 'Başvuru paketi metni:
+
+
+            {{#metin.text#}}'
+        structured_output:
+          schema:
+            additionalProperties: false
+            properties:
+              basvuru:
+                additionalProperties: false
+                properties:
+                  basvuru_no:
+                    additionalProperties: false
+                    description: Başvuru numarası
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  basvuru_tarihi:
+                    additionalProperties: false
+                    description: Başvuru tarihi (GG.AA.YYYY)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  dosyadaki_belgeler:
+                    additionalProperties: false
+                    description: Başvuru dosyasında bulunduğu belirtilen belgelerin listesi (noktalı virgülle)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  eposta:
+                    additionalProperties: false
+                    description: Müşteri e-postası
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  musteri:
+                    additionalProperties: false
+                    description: Müşteri adı
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  talep_tutari:
+                    additionalProperties: false
+                    description: Talep edilen tutar (TL)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  urun:
+                    additionalProperties: false
+                    description: Finansman ürünü
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  vade:
+                    additionalProperties: false
+                    description: Vade (ay)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                required:
+                - basvuru_no
+                - musteri
+                - eposta
+                - urun
+                - talep_tutari
+                - vade
+                - basvuru_tarihi
+                - dosyadaki_belgeler
+                type: object
+              gelir_belgesi:
+                additionalProperties: false
+                properties:
+                  belge_turu:
+                    additionalProperties: false
+                    description: Gelir belgesi türü
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  donem:
+                    additionalProperties: false
+                    description: Dönem
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  duzenleme_tarihi:
+                    additionalProperties: false
+                    description: Belge düzenleme tarihi (GG.AA.YYYY)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  isveren:
+                    additionalProperties: false
+                    description: İşveren
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  net_aylik_gelir:
+                    additionalProperties: false
+                    description: Net aylık gelir (TL)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                required:
+                - belge_turu
+                - isveren
+                - donem
+                - net_aylik_gelir
+                - duzenleme_tarihi
+                type: object
+              hesap_ekstresi:
+                additionalProperties: false
+                properties:
+                  donem:
+                    additionalProperties: false
+                    description: Ekstre dönemi
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  duzenli_gelir_girisi:
+                    additionalProperties: false
+                    description: Düzenli maaş/gelir girişi
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  olumsuz_kayit:
+                    additionalProperties: false
+                    description: Olumsuz kayıt
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  ortalama_bakiye:
+                    additionalProperties: false
+                    description: Ortalama bakiye (TL)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                required:
+                - donem
+                - duzenli_gelir_girisi
+                - ortalama_bakiye
+                - olumsuz_kayit
+                type: object
+              okunamayan_veya_eksik_alanlar:
+                description: Güveni 'okunamadı' veya 'belgede yok' olan alanların Türkçe adları
+                items:
+                  type: string
+                type: array
+              teminat:
+                additionalProperties: false
+                properties:
+                  ekspertiz_degeri:
+                    additionalProperties: false
+                    description: Ekspertiz değeri (TL)
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  ekspertiz_tarihi:
+                    additionalProperties: false
+                    description: Ekspertiz rapor tarihi
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  sigorta:
+                    additionalProperties: false
+                    description: DASK / sigorta durumu
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  tapu_durumu:
+                    additionalProperties: false
+                    description: Tapu durumu
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  tasinmaz:
+                    additionalProperties: false
+                    description: Taşınmaz
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                  teminat_turu:
+                    additionalProperties: false
+                    description: Teminat türü
+                    properties:
+                      deger:
+                        description: Belgede yazdığı gibi; okunamıyorsa boş
+                        type: string
+                      guven:
+                        enum:
+                        - yüksek
+                        - düşük
+                        - okunamadı
+                        - belgede yok
+                        type: string
+                    required:
+                    - deger
+                    - guven
+                    type: object
+                required:
+                - teminat_turu
+                - tasinmaz
+                - ekspertiz_degeri
+                - ekspertiz_tarihi
+                - tapu_durumu
+                - sigorta
+                type: object
+            required:
+            - basvuru
+            - gelir_belgesi
+            - hesap_ekstresi
+            - teminat
+            - okunamayan_veya_eksik_alanlar
+            type: object
+        structured_output_enabled: true
+        title: Alanları çıkar
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      id: cikar
+      position:
+        x: 720
+        y: 260
+      type: custom
+    - data:
+        outputs:
+        - value_selector:
+          - cikar
+          - structured_output
+          variable: cikarilan_veri
+        title: Sonuç
+        type: end
+      id: end
+      position:
+        x: 1040
+        y: 260
+      type: custom
+  rag_pipeline_variables: []
