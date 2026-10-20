@@ -4,10 +4,13 @@ Bu laboratuvarda sahte bir gelen kutusuna e-posta gönderir, bir n8n akışını
 
 Gereken: n8n 2.36 (Community) ve n8n'de tanımlı bir yapay zekâ modeli credential'ı (OpenAI). Başka bir kurulum ya da bağlantı gerekmez.
 
+Adım adım kurulum için **[Lab1_Kurulum_Rehberi.pdf](Lab1_Kurulum_Rehberi.pdf)** dosyasına bakın (5 sayfa, katılımcılara dağıtılabilir).
+
 ## Klasörde ne var?
 
 ```
 lab1_n8n/
+├── Lab1_Kurulum_Rehberi.pdf                  # Katılımcı kurulum rehberi
 ├── tablolar/
 │   └── gelen_kutusu.csv                      # 3 örnek e-posta, tek tablo
 ├── workflows/
