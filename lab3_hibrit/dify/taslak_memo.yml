@@ -266,20 +266,26 @@ workflow:
             \ tarihi arasındaki gün sayısını hesapla ve politikadaki süreyle kıyasla\n   d) Ürün için\
             \ gerekli evrakların dosyada olup olmadığı: politikadaki evrak listesini başvuru verisindeki\
             \ \"dosyadaki_belgeler\" alanıyla karşılaştır (ekspertiz raporu banka tarafından yaptırılır;\
-            \ yoksa \"banka tarafından yaptırılmalı\" diye not et)\n   e) Hesap ekstresindeki olumsuz\
-            \ kayıt ve okunamayan alanlar\n4. Eksikler ve analistin kontrol etmesi gerekenler.\n5. Son\
-            \ satır aynen: \"Bu memo bir taslaktır ve finansman kararı içermez. Onay ya da ret kararı\
-            \ yalnızca finansman analistine aittir.\"\n\nKesin kurallar:\n- Başvurunun genelini \"onaylanmalı\"\
-            , \"reddedilmeli\", \"finansman verilebilir\", \"uygundur\" gibi bir sonuca bağlama; yalnızca\
-            \ madde madde uyum durumunu yaz.\n- Bir kuralı yalnızca kendi ürünü için uygula: örneğin İhtiyaç\
-            \ Finansmanı bölümündeki bir kural konut finansmanına uygulanmaz.\n- Yalnızca aşağıdaki politika\
-            \ bölümlerine dayan; orada olmayan kural, oran ya da tutar uydurma. Politika bir konuda hüküm\
-            \ içermiyorsa \"politikada hüküm bulunamadı\" yaz.\n- Kaynakta doküman adı olarak yalnızca\
-            \ şunlardan birini yaz: Finansman Ürün Kataloğu, Ürün Bazında Gerekli Evrak Listesi, Kâr Payı\
-            \ ve Ücret Politikası, Şube Sık Sorulan Sorular.\n- Katılım bankacılığı terminolojisi kullan:\
-            \ \"kredi\" yerine \"finansman\", \"faiz\" yerine \"kâr payı\", \"komisyon\" yerine \"ücret\"\
-            .\n- Türkçe, sade ve kısa yaz. JSON değil, düz Markdown metin döndür.\n\nPolitika bölümleri:\n\
-            {{#birlestir.output#}}"
+            \ yoksa \"banka tarafından yaptırılmalı\" diye not et). Politikadaki evrak listesinin her\
+            \ kalemini tek tek \"var/yok\" diye say; \"DASK poliçesi ve konut sigortası\" tek kalem görünse\
+            \ de iki ayrı belgedir, \"dosyadaki_belgeler\" alanında geçmeyen her biri için ayrı satır\
+            \ yaz. Dosyada bulunmayan her belgeyi 4. bölümde de ayrı madde olarak say\n   e) Hesap ekstresindeki\
+            \ olumsuz kayıt ve okunamayan alanlar\n4. Eksikler ve analistin kontrol etmesi gerekenler:\
+            \ yalnızca bu başvurunun ürünü için gerçekten eksik ya da riskli olan maddeleri yaz; eksik\
+            \ belge varsa her birini ayrı satırda say. Başka ürünlerin kurallarını (örn. araç için kasko)\
+            \ ve politikada olmayan kontrolleri (örn. taksit/gelir oranı) önerme; eksik yoksa \"Eksik\
+            \ yok.\" yaz.\n5. Son satır aynen: \"Bu memo bir taslaktır ve finansman kararı içermez. Onay\
+            \ ya da ret kararı yalnızca finansman analistine aittir.\"\n\nKesin kurallar:\n- Başvurunun\
+            \ genelini \"onaylanmalı\", \"reddedilmeli\", \"finansman verilebilir\", \"uygundur\" gibi\
+            \ bir sonuca bağlama; yalnızca madde madde uyum durumunu yaz.\n- Bir kuralı yalnızca kendi\
+            \ ürünü için uygula: örneğin İhtiyaç Finansmanı bölümündeki bir kural konut finansmanına uygulanmaz.\n\
+            - Yalnızca aşağıdaki politika bölümlerine dayan; orada olmayan kural, oran ya da tutar uydurma.\
+            \ Politika bir konuda hüküm içermiyorsa \"politikada hüküm bulunamadı\" yaz.\n- Kaynakta doküman\
+            \ adı olarak yalnızca şunlardan birini yaz: Finansman Ürün Kataloğu, Ürün Bazında Gerekli\
+            \ Evrak Listesi, Kâr Payı ve Ücret Politikası, Şube Sık Sorulan Sorular.\n- Katılım bankacılığı\
+            \ terminolojisi kullan: \"kredi\" yerine \"finansman\", \"faiz\" yerine \"kâr payı\", \"komisyon\"\
+            \ yerine \"ücret\".\n- Türkçe, sade ve kısa yaz. JSON değil, düz Markdown metin döndür.\n\n\
+            Politika bölümleri:\n{{#birlestir.output#}}"
         - role: user
           text: 'Başvuru verisi (JSON):
 
@@ -314,6 +320,8 @@ workflow:
 
             Bankanın kendisinin yaptırdığı ya da yürüttüğü işler (örn. ekspertiz raporu, ekspertiz değeri
             tespiti) müşteriden istenmez; bunları listeye yazma.
+
+            DASK poliçesi ve konut sigortası ayrı belgelerdir; ikisi de eksikse iki ayrı satır yaz.
 
             Aynı belgeyi iki kez yazma.
 
